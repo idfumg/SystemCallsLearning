@@ -208,6 +208,7 @@ static int read_config(const char* filename) noexcept
             if (const auto ret = start_new_process(buff) < 0) {
                 return ret;
             }
+            sleep(1);
         }
     }
 
@@ -320,7 +321,9 @@ static int wait_loop() noexcept
 
                 if (fds[i].fd == usrfd) {
                     close_pids();
-                    read_config(config_file);
+                    if (const auto ret = read_config(config_file) < 0) {
+                        return ret;
+                    }
                 }
                 else if (fds[i].fd == chldfd) {
                     int status = 0;
@@ -342,6 +345,10 @@ int main(int argc, char** argv)
     printf("initial process pid: %d\n", getpid());
 
     if (const auto ret = prepare_config() < 0) {
+        return ret;
+    }
+
+    if (const auto ret = read_config(config_file) < 0) {
         return ret;
     }
 

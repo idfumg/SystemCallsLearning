@@ -42,6 +42,8 @@ std::string read_file(const std::string& filename) noexcept
 
 int create_socket() noexcept
 {
+    printf("speaker: create connection to logwriter\n");
+
     const auto fd = socket(PF_UNIX, SOCK_STREAM, 0);
     if (fd < 0) {
         return fd;
@@ -113,10 +115,6 @@ int polling_sockets(const int fd, const int inotify_fd) noexcept
             }
 
             if (fds[i].fd == fd) {
-                if (fds[0].revents != POLLOUT) {
-                    return -1;
-                }
-
                 struct iovec vec[1] = {0};
                 vec[0].iov_base = (void*) &msg[0];
                 vec[0].iov_len = msg.size();
@@ -158,12 +156,19 @@ int polling_sockets(const int fd, const int inotify_fd) noexcept
             }
         }
 
-        sleep(2);
+        sleep(4);
     }
 }
 
 int main(int argc, char** argv)
 {
+    if (const auto ret = setvbuf(stdout, NULL, _IONBF, 0) < 0) {
+        perror("setvbuf");
+        return ret;
+    }
+
+    printf("speaker started\n");
+
     if (const auto ret = setvbuf(stdout, NULL, _IONBF, 0) < 0) {
         return ret;
     }

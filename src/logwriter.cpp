@@ -105,6 +105,10 @@ static int polling_socket(const int fd, FILE* file) noexcept
             }
 
             if (fds[i].fd == fd) {
+                printf("logwriter: new connection established\n");
+                if (const auto ret = log(file, "new connection created") < 0) {
+                    return ret;
+                }
                 for (;;) {
                     const auto new_fd = accept(fd, NULL, NULL);
                     if (new_fd < 0) {
@@ -122,6 +126,9 @@ static int polling_socket(const int fd, FILE* file) noexcept
                 }
             }
             else {
+                if (const auto ret = log(file, "new data arrived: ") < 0) {
+                    return ret;
+                }
                 for (;;) {
                     std::string data;
 
@@ -172,6 +179,12 @@ static int polling_socket(const int fd, FILE* file) noexcept
 
 int main(int argc, char** argv)
 {
+    printf("logwriter started\n");
+    if (const auto ret = setvbuf(stdout, NULL, _IONBF, 0) < 0) {
+        perror("setvbuf");
+        return ret;
+    }
+
     const auto file = fopen(filename, "aw");
     if (file == NULL) {
         return -1;
