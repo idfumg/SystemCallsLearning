@@ -17,7 +17,7 @@ using namespace std;
 
 constexpr char filename[] = "log";
 
-static int log(FILE* file, const std::string& data)
+static int log(FILE* file, const std::string& data) noexcept
 {
     if (const auto ret = fputs((data + "\n").c_str(), file) < 0) {
         return ret;
@@ -26,7 +26,7 @@ static int log(FILE* file, const std::string& data)
     return 0;
 }
 
-static int create_socket()
+static int create_socket() noexcept
 {
     const auto fd = socket(PF_UNIX, SOCK_STREAM, 0);
     if (fd < 0) {
@@ -61,7 +61,7 @@ static int create_socket()
     return fd;
 }
 
-static void compress_array(struct pollfd fds[], int& nfds)
+static void compress_array(struct pollfd fds[], int& nfds) noexcept
 {
     for (auto i = 0; i < nfds; ++i) {
         if (fds[i].fd == -1) {
@@ -73,7 +73,7 @@ static void compress_array(struct pollfd fds[], int& nfds)
     }
 }
 
-static int polling_socket(const int fd, FILE* file)
+static int polling_socket(const int fd, FILE* file) noexcept
 {
     struct pollfd fds[256];
     memset(fds, 0, sizeof(fds));
