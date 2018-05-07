@@ -13,8 +13,6 @@
 
 #include <string>
 
-#include "return.h"
-
 using namespace std;
 
 constexpr char filename[] = "log";
