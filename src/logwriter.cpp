@@ -177,6 +177,33 @@ static int polling_socket(const int fd, FILE* file) noexcept
     return 0;
 }
 
+FILE* open_file(const char* filename, const char* options)
+{
+    const auto file = fopen(filename, options);
+    if (file == NULL) {
+        return nullptr;
+    }
+
+    const auto fd = fileno(file);
+
+    auto flags = fcntl(fd, F_GETFD);
+    if (flags < 0) {
+        return nullptr;
+    }
+
+    flags |= FD_CLOEXEC;
+
+    if (const auto ret = fcntl(fd, F_SETFD, flags) < 0) {
+        return nullptr;
+    }
+
+    if (const auto ret = setvbuf(file, NULL, _IONBF, 0) < 0) {
+        return ret;
+    }
+
+    return file;
+}
+
 int main(int argc, char** argv)
 {
     printf("logwriter started\n");
@@ -185,13 +212,9 @@ int main(int argc, char** argv)
         return ret;
     }
 
-    const auto file = fopen(filename, "aw");
-    if (file == NULL) {
+    const auto file = open_file(filename, "aw");
+    if (file == nullptr) {
         return -1;
-    }
-
-    if (const auto ret = setvbuf(file, NULL, _IONBF, 0) < 0) {
-        return ret;
     }
 
     if (const auto ret = log(file, argv[0] + std::string(" started")) < 0) {
