@@ -271,6 +271,45 @@ static SignalData read_signalData(const int fd) noexcept
     return SignalData { fdsi.ssi_signo, fdsi.ssi_pid };
 }
 
+static int collect_pid(const pid_t& pid)
+{
+    int status = 0;
+    const auto ret = waitpid(pid, &status, WNOHANG);
+    if (ret < 0) {
+        return ret;
+    }
+
+    if (WIFEXITED(status)) {
+        printf("child %d exited, status = %d\n",
+               (int) pid, WEXITSTATUS(status));
+    }
+    else if (WIFSIGNALED(status)) {
+        printf("child %d killed by signal %d (%s)", (int) pid,
+               WTERMSIG(status), strsignal(WTERMSIG(status)));
+#ifdef WCOREDUMP
+        if (WCOREDUMP(status)) {
+            printf(" (core dumped)");
+        }
+#endif
+        printf("\n");
+    }
+    else if (WIFSTOPPED(status)) {
+        printf("child %d stopped by signal %d (%s)\n", (int) pid,
+               WSTOPSIG(status), strsignal(WSTOPSIG(status)));
+    }
+#ifdef WIFCONTINUED
+    else if (WIFCONTINUED(status)) {
+        printf("child %d continued\n", (int) pid);
+    }
+#endif
+    else {
+        printf("what happened to this child %d? (status=%x)\n",
+               (int) pid, (unsigned int) status);
+    }
+
+    return ret;
+}
+
 static int wait_loop() noexcept
 {
     printf("wait events...\n");
@@ -311,7 +350,7 @@ static int wait_loop() noexcept
             for (;;) {
                 const auto data = read_signalData(fds[i].fd);
 
-                if (data.signo == -1) { // EWOULDBLOCK, nodata
+                if (data.signo == -1) { // EWOULDBLOCK, no data
                     break;
                 }
 
@@ -326,9 +365,10 @@ static int wait_loop() noexcept
                     }
                 }
                 else if (fds[i].fd == chldfd) {
-                    int status = 0;
-                    waitpid(data.pid, &status, WNOHANG);
-                    printf("process %d exited with status: %d\n", (int) data.pid, status);
+                    if (const auto ret = collect_pid(data.pid) < 0) {
+                        return ret;
+                    }
+
                     if (const auto ret = remove_pid(data.pid) < 0) {
                         return ret;
                     }
