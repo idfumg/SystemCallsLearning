@@ -17,7 +17,7 @@
 
 constexpr char msg_filename[] = "msg_data";
 
-std::string read_file(const std::string& filename) noexcept
+static std::string read_file(const std::string& filename) noexcept
 {
     const auto fd = open(filename.c_str(), O_RDONLY);
     if (fd < 0) {
@@ -40,7 +40,7 @@ std::string read_file(const std::string& filename) noexcept
     return buff;
 }
 
-int create_socket() noexcept
+static int create_socket() noexcept
 {
     printf("speaker: create connection to logwriter\n");
 
@@ -66,7 +66,7 @@ int create_socket() noexcept
     return fd;
 }
 
-int create_inotify() noexcept
+static int create_inotify() noexcept
 {
     const auto inotify_fd = inotify_init();
     if (inotify_fd < 0) {
@@ -85,7 +85,7 @@ int create_inotify() noexcept
     return inotify_fd;
 }
 
-int polling_sockets(const int fd, const int inotify_fd) noexcept
+static int polling_sockets(const int fd, const int inotify_fd) noexcept
 {
     struct pollfd fds[256];
     memset(fds, 0, sizeof(fds));

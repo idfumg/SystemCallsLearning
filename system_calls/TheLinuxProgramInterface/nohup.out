@@ -1,0 +1,6 @@
+
+(evince:1974): IBUS-WARNING **: Unable to connect to ibus: Could not connect: Connection refused
+*** BUG ***
+In pixman_region32_init_rect: Invalid rectangle passed
+Set a breakpoint on '_pixman_log_error' to debug
+

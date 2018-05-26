@@ -177,7 +177,7 @@ static int polling_socket(const int fd, FILE* file) noexcept
     return 0;
 }
 
-FILE* open_file(const char* filename, const char* options)
+static FILE* open_file(const char* filename, const char* options) noexcept
 {
     const auto file = fopen(filename, options);
     if (file == NULL) {
