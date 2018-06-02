@@ -96,6 +96,13 @@ int main(int argc, char** argv)
         return 2;
     }
 
+    int yes = 1;
+    const int sockopt_ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+    if (sockopt_ret == -1) {
+        perror("setsockopt");
+        return 5;
+    }
+
     const int bind_ret = bind(sockfd, addr.ai_addr, addr.ai_addrlen);
     if (bind_ret == -1) {
         perror("bind");
@@ -106,13 +113,6 @@ int main(int argc, char** argv)
     if (listen_ret == -1) {
         perror("listen");
         return 4;
-    }
-
-    int yes = 1;
-    const int sockopt_ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
-    if (sockopt_ret == -1) {
-        perror("setsockopt");
-        return 5;
     }
 
     const int sig_ret = ActivateSignal();
